@@ -154,7 +154,7 @@ bool GameRule::trigger(TriggerEvent event, ServerPlayer *player, QVariant &data)
 
     switch(event){
     case GameStart: {
-        if(player->getGeneral()->getKingdom() == "god" && !Config.EnableBasara){
+        if(player->getGeneral()->getKingdom() == "god" && player->getGeneralName() != "anjiang"){
                 QString new_kingdom = room->askForKingdom(player);
                 room->setPlayerProperty(player, "kingdom", new_kingdom);
 
@@ -567,7 +567,8 @@ void GameRule::rewardAndPunish(ServerPlayer *killer, ServerPlayer *victim) const
 
     if(killer->getRoom()->getMode() == "06_3v3"){
         killer->drawCards(3);
-    }else{
+    }
+    else{
         if(victim->getRole() == "rebel" && killer != victim){
             killer->drawCards(3);
         }else if(victim->getRole() == "loyalist" && killer->getRole() == "lord"){
@@ -587,6 +588,30 @@ QString GameRule::getWinner(ServerPlayer *victim) const{
         case Player::Renegade: winner = "lord+loyalist"; break;
         default:
             break;
+        }
+    }else if(Config.EnableHegemony){
+        bool has_anjiang = false, has_diff_kingdoms = false;
+        QString init_kingdom;
+        foreach(ServerPlayer *p, room->getAlivePlayers()){
+            if(room->getTag(p->objectName()).toStringList().size()){
+                has_anjiang = true;
+            }
+
+            if(init_kingdom.isEmpty()){
+                init_kingdom = p->getKingdom();
+            }
+            else if(init_kingdom != p->getKingdom()){
+                has_diff_kingdoms = true;
+            }
+        }
+
+        if(!has_anjiang && !has_diff_kingdoms){
+            QStringList winners;
+            foreach(ServerPlayer *p, room->getAlivePlayers()){
+                winners << p->objectName();
+            }
+
+            winner = winners.join("+");
         }
     }else{
         QStringList alive_roles = room->aliveRoles(victim);
@@ -821,6 +846,11 @@ BasaraMode::BasaraMode(QObject *parent)
     skill_mark["niepan"] = "@nirvana";
     skill_mark["smallyeyan"] = "@flame";
     skill_mark["luanwu"] = "@chaos";
+
+    roles["wei"] = "lord";
+    roles["shu"] = "loyalist";
+    roles["wu"] = "rebel";
+    roles["qun"] = "renegade";
 }
 
 int BasaraMode::getPriority() const
@@ -850,6 +880,7 @@ void BasaraMode::playerShowed(ServerPlayer *player) const{
         QString general_name = room->askForGeneral(player,names);
 
         generalShowed(player,general_name);
+        room->getThread()->trigger(GameOverJudge, player);
         playerShowed(player);
     }
 }
@@ -877,23 +908,20 @@ void BasaraMode::generalShowed(ServerPlayer *player, QString general_name) const
             room->setPlayerMark(player, skill_mark[skill_name], 1);
     }
 
-        int hp = player->getLostHp() == 0 ? 0 : player->getHp();
-        room->setPlayerProperty(player,"maxhp",player->getGeneralMaxHP());
-        room->setPlayerProperty(player,"hp",hp == 0 ? player->getMaxHP() : hp);
+    room->setPlayerProperty(player, "kingdom", player->getGeneral()->getKingdom());
+    room->setPlayerProperty(player, "role", roles[player->getGeneral()->getKingdom()]);
 
-        room->setPlayerProperty(player, "kingdom", player->getGeneral()->getKingdom());
+    names.removeOne(general_name);
+    room->setTag(player->objectName(),QVariant::fromValue(names));
 
-        names.removeOne(general_name);
-        room->setTag(player->objectName(),QVariant::fromValue(names));
+    LogMessage log;
+    log.type = "#BasaraReveal";
+    log.from = player;
+    log.arg  = player->getGeneralName();
+    log.arg2 = player->getGeneral2Name();
 
-        LogMessage log;
-        log.type = "#BasaraReveal";
-        log.from = player;
-        log.arg  = player->getGeneralName();
-        log.arg2 = player->getGeneral2Name();
-
-        room->sendLog(log);
-        room->broadcastInvoke("playAudio","choose-item");
+    room->sendLog(log);
+    room->broadcastInvoke("playAudio","choose-item");
 }
 
 void BasaraMode::setBannedGenerals(ServerPlayer *player, QStringList &choices) const{
@@ -942,64 +970,32 @@ bool BasaraMode::trigger(TriggerEvent event, ServerPlayer *player, QVariant &dat
     switch(event){
     case GameStart:{
         if(player->isLord()){
-            if(Config.EnableHegemony){
-                room->setPlayerProperty(player, "maxhp", player->getMaxHP() - 1);
-            }
+            if(Config.EnableHegemony)
+                room->setTag("SkipNormalDeathProcess", true);
 
-            QSet<QString> selected_set;
-            const Package *godpack = Sanguosha->findChild<const Package *>("god");
-            foreach(const General *general, godpack->findChildren<const General *>())
-                selected_set.insert(general->objectName());
+            room->setPlayerProperty(player, "maxhp", player->getMaxHP() - 1);
 
-            foreach(QString ban_name, ban_list)
-                selected_set.insert(ban_name);
+            foreach(ServerPlayer* sp, room->getAlivePlayers())
+            {
+                QString transfigure_str = QString("%1:%2").arg(sp->getGeneralName()).arg("anjiang");
+                sp->invoke("transfigure", transfigure_str);
+                room->setPlayerProperty(sp,"general","anjiang");
 
-            foreach(ServerPlayer *p, room->getAllPlayers()){
-                QStringList choices = Sanguosha->getRandomGenerals(5, selected_set), selected;
-                QList<const General *> choices_generals, selected_generals;
-                foreach(QString n, choices)
-                    choices_generals << Sanguosha->getGeneral(n);
-
-                QString first_name;
-                do{
-                    first_name = room->askForGeneral(p, choices);
-                    const General *first = Sanguosha->getGeneral(first_name);
-
-                    foreach(const General *g, choices_generals)
-                        if(g->getKingdom() == first->getKingdom() && g != first){
-                            selected_generals << g;
-                            selected << g->objectName();
-                        }
-
-                    ServerPlayer *first_player = new ServerPlayer(room);
-                    first_player->setGeneral(first);
-                    setBannedGenerals(first_player, selected);
-                }while(selected.isEmpty());
-
-
-                QString second_name = room->askForGeneral(p, selected);
-                selected_set.insert(first_name);
-                selected_set.insert(second_name);
-
-                QStringList roles;
-                roles << first_name << second_name;
-                QVariant player_roles;
-                player_roles.setValue(roles);
-                room->setTag(p->objectName(), player_roles);
-                p->tag["roles"] = QString("%1+%2").arg(first_name).arg(second_name);
                 LogMessage log;
                 log.type = "#BasaraGeneralChosen";
-                log.arg = first_name;
-                log.arg2 = second_name;
-                p->invoke("log",log.toString());
+                log.arg = room->getTag(sp->objectName()).toStringList().at(0);
 
-                const General * gen = Sanguosha->getGeneral(first_name);
-                foreach(const TriggerSkill *skill, gen->getTriggerSkills())
-                    room->getThread()->addTriggerSkill(skill);
+                if(Config.Enable2ndGeneral)
+                {
 
-                gen = Sanguosha->getGeneral(second_name);
-                foreach(const TriggerSkill *skill, gen->getTriggerSkills())
-                    room->getThread()->addTriggerSkill(skill);
+                    transfigure_str = QString("%1:%2").arg(sp->getGeneral2Name()).arg("anjiang");
+                    sp->invoke("transfigure", transfigure_str);
+                    room->setPlayerProperty(sp,"general2","anjiang");
+
+                    log.arg2 = room->getTag(sp->objectName()).toStringList().at(1);
+                }
+
+                sp->invoke("log",log.toString());
             }
         }
 
@@ -1041,53 +1037,14 @@ bool BasaraMode::trigger(TriggerEvent event, ServerPlayer *player, QVariant &dat
         break;
     }
 
-    case Dying:{
-        if(Config.EnableHegemony && player->isLord()){
-            QList<ServerPlayer *> players = room->getAlivePlayers();
-            players.removeOne(player);
-            if(players.isEmpty())
-                break;
-
-            qShuffle(players);
-            ServerPlayer *p = players.first();
-            room->setPlayerProperty(player, "role", "renegade");
-            room->setPlayerProperty(p, "role", "lord");
-        }
-
-        break;
-    }
-
     case Death:{
         if(Config.EnableHegemony){
-            bool has_anjiang = false, has_diff_kingdoms = false;
-            QString init_kingdom;
-            foreach(ServerPlayer *p, room->getAlivePlayers()){
-                if(p->getGeneralName() == "anjiang"){
-                    has_anjiang = true;
-                }
-
-                if(init_kingdom.isEmpty()){
-                    init_kingdom = p->getKingdom();
-                }
-                else if(init_kingdom != p->getKingdom()){
-                    has_diff_kingdoms = true;
-                }
-            }
-
-            if(!has_anjiang && !has_diff_kingdoms){
-                QStringList winners;
-                foreach(ServerPlayer *p, room->getAlivePlayers()){
-                    winners << p->objectName();
-                }
-
-                room->gameOver(winners.join("+"));
-            }
-
             if(player->getGeneralName() == "anjiang"){
                 QStringList generals = room->getTag(player->objectName()).toStringList();
-                room->transfigure(player, generals.at(0), false, false);
+                room->setPlayerProperty(player, "general", generals.at(0));
                 room->setPlayerProperty(player, "general2", generals.at(1));
                 room->setPlayerProperty(player, "kingdom", Sanguosha->getGeneral(generals.at(0))->getKingdom());
+                room->setPlayerProperty(player, "role", roles[player->getKingdom()]);
             }
 
             DamageStar damage = data.value<DamageStar>();
@@ -1095,13 +1052,15 @@ bool BasaraMode::trigger(TriggerEvent event, ServerPlayer *player, QVariant &dat
                 damage->from->throwAllEquips();
                 damage->from->throwAllHandCards();
             }
-            else{
+            else if(damage->from && damage->from->isAlive()){
                 damage->from->drawCards(3);
             }
+
         }
 
         break;
     }
+
     default:
         break;
     }

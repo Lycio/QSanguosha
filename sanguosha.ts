@@ -25,6 +25,29 @@
     </message>
 </context>
 <context>
+    <name>BanlistDialog</name>
+    <message>
+        <location filename="src/server/server.cpp" line="286"/>
+        <source>Select generals that are excluded</source>
+        <translation>选择排除的武将</translation>
+    </message>
+    <message>
+        <location filename="src/server/server.cpp" line="320"/>
+        <source>Add ...</source>
+        <translation>添加 ...</translation>
+    </message>
+    <message>
+        <location filename="src/server/server.cpp" line="321"/>
+        <source>Remove</source>
+        <translation>删除</translation>
+    </message>
+    <message>
+        <location filename="src/server/server.cpp" line="322"/>
+        <source>OK</source>
+        <translation>确定</translation>
+    </message>
+</context>
+<context>
     <name>BroadcastBox</name>
     <message>
         <location filename="src/dialog/mainwindow.cpp" line="501"/>
@@ -1466,29 +1489,6 @@
     </message>
 </context>
 <context>
-    <name>KOFBanlistDialog</name>
-    <message>
-        <location filename="src/server/server.cpp" line="270"/>
-        <source>Select generals that are excluded in 1v1 mode</source>
-        <translation>选择在 1v1 模式中排除的武将</translation>
-    </message>
-    <message>
-        <location filename="src/server/server.cpp" line="284"/>
-        <source>Add ...</source>
-        <translation>添加 ...</translation>
-    </message>
-    <message>
-        <location filename="src/server/server.cpp" line="285"/>
-        <source>Remove</source>
-        <translation>删除</translation>
-    </message>
-    <message>
-        <location filename="src/server/server.cpp" line="286"/>
-        <source>OK</source>
-        <translation>确定</translation>
-    </message>
-</context>
-<context>
     <name>MainWindow</name>
     <message>
         <location filename="src/dialog/mainwindow.ui" line="14"/>
@@ -1732,7 +1732,12 @@
         <translation>发送底层命令 ...</translation>
     </message>
     <message>
-        <location filename="src/dialog/mainwindow.ui" line="235"/>
+        <location filename="src/dialog/mainwindow.ui" line="363"/>
+        <source>View ban list</source>
+        <translation>查看禁选表</translation>
+    </message>
+    <message>
+        <location filename="src/dialog/mainwindow.ui" line="236"/>
         <source>Alt+M</source>
         <translation></translation>
     </message>
@@ -1827,14 +1832,6 @@
         <location filename="src/dialog/mainwindow.cpp" line="338"/>
         <source>Compilation time: %1 %2 &lt;br/&gt;</source>
         <translation>编译时间: %1 %2 &lt;br/&gt;</translation>
-    </message>
-    <message>
-        <source>Project home: &lt;a href=&apos;%1&apos;&gt;%1&lt;/a&gt; &lt;br/&gt;</source>
-        <translation>项目主页: &lt;a href=&apos;%1&apos;&gt;%1&lt;/a&gt; &lt;br/&gt;</translation>
-    </message>
-    <message>
-        <source>Forum: &lt;a href=&apos;%1&apos;&gt;%1&lt;/a&gt; &lt;br/&gt;</source>
-        <translation>论坛: &lt;a href=&apos;%1&apos;&gt;%1&lt;/a&gt; &lt;br/&gt;</translation>
     </message>
     <message>
         <location filename="src/dialog/mainwindow.cpp" line="346"/>

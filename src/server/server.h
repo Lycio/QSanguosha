@@ -41,19 +41,24 @@ private slots:
     void toggleCheck();
 };
 
-class KOFBanlistDialog: public QDialog{
+class BanlistDialog: public QDialog{
     Q_OBJECT
 
 public:
-    KOFBanlistDialog(QDialog *parent);
+    BanlistDialog(QWidget *parent, bool view = false);
 
 private:
-    QListWidget *list;
+    QList<QListWidget *>lists;
+    QListWidget * list;
+    int item;
+    QStringList ban_list;
 
 private slots:
     void addGeneral(const QString &name);
     void removeGeneral();
     void save();
+    void saveAll();
+    void switchTo(int item);
 };
 
 class ServerDialog: public QDialog{

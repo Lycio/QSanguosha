@@ -211,17 +211,40 @@ QStringList ServerPlayer::getSelected() const{
 #include "banpairdialog.h"
 
 QString ServerPlayer::findReasonable(const QStringList &generals, bool no_unreasonable){
-    if(Config.Enable2ndGeneral){
-        foreach(QString name, generals){
+
+    foreach(QString name, generals){
+        if(Config.Enable2ndGeneral){
             if(getGeneral()){
-                if(!BanPair::isBanned(getGeneralName(), name))
-                    return name;
+                if(BanPair::isBanned(getGeneralName(), name))
+                    continue;
             }else{
-                if(!BanPair::isBanned(name))
-                    return name;
+                if(BanPair::isBanned(name))
+                    continue;
+            }
+
+            if(Config.EnableHegemony)
+            {
+                if(getGeneral())
+                    if(getGeneral()->getKingdom()
+                            != Sanguosha->getGeneral(name)->getKingdom())
+                        continue;
             }
         }
+        if(Config.EnableBasara)
+        {
+            QStringList ban_list = Config.value("Banlist/basara").toStringList();
+
+            if(ban_list.contains(name))continue;
+        }
+        if(Config.GameMode == "zombie_mode")
+        {
+            QStringList ban_list = Config.value("Banlist/zombie").toStringList();
+
+            if(ban_list.contains(name))continue;
+        }
+        return name;
     }
+
 
     if(no_unreasonable)
         return NULL;

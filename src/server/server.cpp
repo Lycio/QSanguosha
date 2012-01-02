@@ -59,15 +59,27 @@ QWidget *ServerDialog::createBasicTab(){
     timeout_spinbox->setMaximum(30);
     timeout_spinbox->setValue(Config.OperationTimeout);
     timeout_spinbox->setSuffix(tr(" seconds"));
-
     nolimit_checkbox = new QCheckBox(tr("No limit"));
     nolimit_checkbox->setChecked(false);
     connect(nolimit_checkbox, SIGNAL(toggled(bool)), timeout_spinbox, SLOT(setDisabled(bool)));
     nolimit_checkbox->setChecked(Config.OperationNoLimit);
 
+    // add 1v1 banlist edit button
+    QPushButton *edit_button = new QPushButton(tr("Banlist ..."));
+    edit_button->setFixedWidth(100);
+    connect(edit_button, SIGNAL(clicked()), this, SLOT(edit1v1Banlist()));
+
     QFormLayout *form_layout = new QFormLayout;
+    QHBoxLayout *hlay = new QHBoxLayout;
+    hlay->addWidget(timeout_spinbox);
+    hlay->addWidget(nolimit_checkbox);
+    hlay->addWidget(edit_button);
     form_layout->addRow(tr("Server name"), server_name_edit);
-    form_layout->addRow(tr("Operation timeout"), HLay(timeout_spinbox, nolimit_checkbox));
+    QHBoxLayout * lay = new QHBoxLayout;
+    lay->addWidget(timeout_spinbox);
+    lay->addWidget(nolimit_checkbox);
+    lay->addWidget(edit_button);
+    form_layout->addRow(tr("Operation timeout"), lay);
     form_layout->addRow(createGameModeBox());
 
     QWidget *widget = new QWidget;
@@ -174,8 +186,6 @@ QWidget *ServerDialog::createAdvancedTab(){
 
     basara_checkbox = new QCheckBox(tr("Enable Basara"));
     basara_checkbox->setChecked(Config.EnableBasara);
-    basara_checkbox->setEnabled(second_general_checkbox->isChecked());
-    connect(second_general_checkbox,SIGNAL(toggled(bool)),basara_checkbox, SLOT(setEnabled(bool)));
 
     hegemony_checkbox = new QCheckBox(tr("Enable Hegemony"));
     hegemony_checkbox->setChecked(Config.EnableHegemony);
@@ -264,21 +274,48 @@ void ServerDialog::ensureEnableAI(){
     ai_enable_checkbox->setChecked(true);
 }
 
-KOFBanlistDialog::KOFBanlistDialog(QDialog *parent)
+void BanlistDialog::switchTo(int item)
+{
+    this->item = item;
+    list = lists.at(item);
+}
+
+
+BanlistDialog::BanlistDialog(QWidget *parent, bool view)
     :QDialog(parent)
 {
-    setWindowTitle(tr("Select generals that are excluded in 1v1 mode"));
+    setWindowTitle(tr("Select generals that are excluded"));
 
+    if(ban_list.isEmpty())
+        ban_list << "1v1" << "Basara" << "Zombie";
     QVBoxLayout *layout = new QVBoxLayout;
 
-    list = new QListWidget;
-    list->setIconSize(General::TinyIconSize);
-    list->setViewMode(QListView::IconMode);
-    list->setDragDropMode(QListView::NoDragDrop);
+    QTabWidget *tab = new QTabWidget;
+    layout->addWidget(tab);
+    connect(tab,SIGNAL(currentChanged(int)),this,SLOT(switchTo(int)));
 
-    QStringList banlist = Config.value("1v1/Banlist").toStringList();
-    foreach(QString name, banlist){
-        addGeneral(name);
+    foreach(QString item,ban_list)
+    {
+        QWidget *apage = new QWidget;
+
+        list = new QListWidget;
+        list->setIconSize(General::TinyIconSize);
+        list->setViewMode(QListView::IconMode);
+        list->setDragDropMode(QListView::NoDragDrop);
+
+        QStringList banlist = Config.value(QString("Banlist/%1").arg(item)).toStringList();
+        foreach(QString name, banlist){
+            addGeneral(name);
+        }
+
+        lists << list;
+
+        QVBoxLayout * vlay = new QVBoxLayout;
+        vlay->addWidget(list);
+        //vlay->addLayout(hlayout);
+        apage->setLayout(vlay);
+
+        tab->addTab(apage,Sanguosha->translate(item));
     }
 
     QPushButton *add = new QPushButton(tr("Add ..."));
@@ -287,16 +324,15 @@ KOFBanlistDialog::KOFBanlistDialog(QDialog *parent)
 
     connect(remove, SIGNAL(clicked()), this, SLOT(removeGeneral()));
     connect(ok, SIGNAL(clicked()), this, SLOT(accept()));
-    connect(this, SIGNAL(accepted()), this, SLOT(save()));
+    connect(this, SIGNAL(accepted()), this, SLOT(saveAll()));
 
     QHBoxLayout *hlayout = new QHBoxLayout;
     hlayout->addStretch();
-    hlayout->addWidget(add);
-    hlayout->addWidget(remove);
+    if(!view) hlayout->addWidget(add);
+    if(!view) hlayout->addWidget(remove);
     hlayout->addWidget(ok);
-
-    layout->addWidget(list);
     layout->addLayout(hlayout);
+
     setLayout(layout);
 
     FreeChooseDialog *chooser = new FreeChooseDialog(this, false);
@@ -304,7 +340,7 @@ KOFBanlistDialog::KOFBanlistDialog(QDialog *parent)
     connect(chooser, SIGNAL(general_chosen(QString)), this, SLOT(addGeneral(QString)));
 }
 
-void KOFBanlistDialog::addGeneral(const QString &name){
+void BanlistDialog::addGeneral(const QString &name){
     const General *general = Sanguosha->getGeneral(name);
     QIcon icon(general->getPixmapPath("tiny"));
     QString text = Sanguosha->translate(name);
@@ -312,13 +348,13 @@ void KOFBanlistDialog::addGeneral(const QString &name){
     item->setData(Qt::UserRole, name);
 }
 
-void KOFBanlistDialog::removeGeneral(){
+void BanlistDialog::removeGeneral(){
     int row = list->currentRow();
     if(row != -1)
         delete list->takeItem(row);
 }
 
-void KOFBanlistDialog::save(){
+void BanlistDialog::save(){
     QSet<QString> banset;
 
     int i;
@@ -327,11 +363,21 @@ void KOFBanlistDialog::save(){
     }
 
     QStringList banlist = banset.toList();
-    Config.setValue("1v1/Banlist", QVariant::fromValue(banlist));
+    Config.setValue(QString("Banlist/%1").arg(ban_list.at(item)), QVariant::fromValue(banlist));
+}
+
+void BanlistDialog::saveAll()
+{
+    int i = 0;
+    foreach(QListWidget * list, lists)
+    {
+        switchTo(i++);
+        save();
+    }
 }
 
 void ServerDialog::edit1v1Banlist(){
-    KOFBanlistDialog *dialog = new KOFBanlistDialog(this);
+    BanlistDialog *dialog = new BanlistDialog(this);
     dialog->exec();
 }
 
@@ -398,13 +444,7 @@ QGroupBox *ServerDialog::createGameModeBox(){
             button->setObjectName(itor.key());
             mode_group->addButton(button);
 
-            if(itor.key() == "02_1v1"){
-                // add 1v1 banlist edit button
-                QPushButton *edit_button = new QPushButton(tr("Banlist ..."));
-                connect(edit_button, SIGNAL(clicked()), this, SLOT(edit1v1Banlist()));
-                item_list << HLay(button, edit_button);
-
-            }else if(itor.key() == "06_3v3"){
+            if(itor.key() == "06_3v3"){
                 // add 3v3 options
                 QGroupBox *box = create3v3Box();
                 connect(button, SIGNAL(toggled(bool)), box, SLOT(setEnabled(bool)));

@@ -515,6 +515,12 @@ QList<QPointF> RoomScene::getPhotoPositions() const{
     case 9: nine = 1; break;
     }
 
+    if(ServerInfo.GameMode == "06_3v3" )
+    {
+        six   = 0;
+        nine = 1;
+    }
+
     if(Config.value("CircularView").toBool()){
         cxw=1;
         cxw2=0;

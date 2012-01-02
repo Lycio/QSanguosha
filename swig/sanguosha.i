@@ -96,6 +96,7 @@ public:
     QString getRole() const;    
     Role getRoleEnum() const;
 
+	void setGeneral(const General *general);
     void setGeneralName(const char *general_name);
     QString getGeneralName() const;    
 
@@ -228,6 +229,8 @@ public:
 class ServerPlayer : public Player
 {
 public:
+	ServerPlayer(Room *room);
+
     void setSocket(ClientSocket *socket);
     void invoke(const char *method, const char *arg = ".");
     QString reportHeader() const;
@@ -288,7 +291,7 @@ public:
     // 3v3 methods
     void addToSelected(const char *general);
     QStringList getSelected() const;
-    QString findReasonable(const QStringList &generals);
+    QString findReasonable(const QStringList &generals, bool no_unreasonable = false);
     void clearSelected();
 
     int getGeneralMaxHP() const;
@@ -442,6 +445,7 @@ enum TriggerEvent{
     FinishJudge,
 
 	Pindian,
+	TurnedOver,
 
     Predamage,
     Predamaged,
@@ -629,9 +633,6 @@ public:
     QStringList getScenarioNames() const;
     void addScenario(Scenario *scenario);
     const Scenario *getScenario(const char *name) const;
-
-    const ChallengeModeSet *getChallengeModeSet() const;
-    const ChallengeMode *getChallengeMode(const char *name) const;
 
     const General *getGeneral(const char *name) const;
     int getGeneralCount(bool include_banned = false) const;

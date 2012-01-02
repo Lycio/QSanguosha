@@ -111,20 +111,15 @@ void Photo::createRoleCombobox(){
     role_combobox = new RoleCombobox(this);
 
     QString role = player->getRole();
-    if(!role.isEmpty())
-        role_combobox->fix(role);
+    if(!Config.EnableHegemony && !role.isEmpty())
+            role_combobox->fix(role);
 
     connect(player, SIGNAL(role_changed(QString)), role_combobox, SLOT(fix(QString)));
 }
 
 void Photo::updateRoleComboboxPos()
 {
-    int i, n = pile_buttons.length();
-    for(i=0; i<n; i++){
-        QGraphicsProxyWidget *button_widget = pile_buttons.at(i);
-        button_widget->setPos(pos());
-        button_widget->moveBy(5, 15 + i * 10);
-    }
+    //if(pile_button)pile_button->setPos(46, 48);
 }
 
 void Photo::showProcessBar(){
