@@ -476,6 +476,8 @@ void ServerPlayer::turnOver(){
     log.from = this;
     log.arg = faceUp() ? "face_up" : "face_down";
     room->sendLog(log);
+
+    room->getThread()->trigger(TurnedOver, this);
 }
 
 void ServerPlayer::play(){
