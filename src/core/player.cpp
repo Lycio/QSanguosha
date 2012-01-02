@@ -424,7 +424,7 @@ bool Player::hasWeapon(const QString &weapon_name) const{
 }
 
 bool Player::hasArmorEffect(const QString &armor_name) const{
-    return armor && getMark("qinggang") == 0 && getMark("wuqian") == 0 && armor->objectName() == armor_name;
+    return armor && getMark("qinggang") == 0 && armor->objectName() == armor_name;
 }
 
 QList<const Card *> Player::getJudgingArea() const{
@@ -615,6 +615,15 @@ int Player::getCardCount(bool include_equip) const{
 
 QList<int> Player::getPile(const QString &pile_name) const{
     return piles[pile_name];
+}
+
+QStringList Player::getPileNames() const{
+    QStringList names;
+    foreach(QString pile_name,piles.keys())
+    {
+        names.append(pile_name);
+    }
+    return names;
 }
 
 QString Player::getPileName(int card_id) const{

@@ -407,6 +407,8 @@ QString Engine::getSetupString() const{
         flags.append("S");
     if(Config.EnableScene)
         flags.append("C");
+    if(Config.EnableBasara)
+        flags.append("B");
     if(Config.EnableAI)
         flags.append("A");
     if(Config.DisableChat)

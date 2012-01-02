@@ -42,4 +42,22 @@ private:
     mutable jmp_buf env;
 };
 
+class BasaraMode: public GameRule{
+    Q_OBJECT
+
+public:
+    BasaraMode(QObject *parent);
+
+    virtual bool trigger(TriggerEvent event, ServerPlayer *player, QVariant &data) const;
+    virtual int getPriority() const;
+    void playerShowed(ServerPlayer *player) const;
+    void generalShowed(ServerPlayer *player,QString general_name) const;
+
+    void setBannedGenerals(ServerPlayer *player, QStringList &choices) const;
+
+private:
+    QStringList ban_list;
+    QMap<QString, QString> skill_mark;
+};
+
 #endif // GAMERULE_H
