@@ -285,6 +285,8 @@ int Engine::getRoleIndex() const{
         return 3;
     }else if(ServerInfo.GameMode == "06_3v3"){
         return 4;
+    }else if(Config.EnableHegemony){
+        return 5;
     }else
         return 1;
 }
