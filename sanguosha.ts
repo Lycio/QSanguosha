@@ -2679,7 +2679,12 @@
         <translation>存活</translation>
     </message>
     <message>
-        <location filename="src/ui/roomscene.cpp" line="2487"/>
+        <location filename="src/ui/roomscene.cpp" line="2584"/>
+        <source>Nationality</source>
+        <translation>国籍</translation>
+    </message>
+    <message>
+        <location filename="src/ui/roomscene.cpp" line="2586"/>
         <source>Role</source>
         <translation>角色</translation>
     </message>
