@@ -368,10 +368,9 @@ void BanlistDialog::save(){
 
 void BanlistDialog::saveAll()
 {
-    int i = 0;
-    foreach(QListWidget * list, lists)
+    for(int i=0;i<lists.length();i++)
     {
-        switchTo(i++);
+        switchTo(i);
         save();
     }
 }

@@ -39,6 +39,7 @@ extern "C" {
     Package *NewYitian();
     Package *NewSP();
     Package *NewYJCM();
+    Package *NewBGM();
     Package *NewWisdom();
     Package *NewTest();
 
@@ -77,6 +78,7 @@ Engine::Engine()
     addPackage(NewGod());
     addPackage(NewSP());
     addPackage(NewYJCM());
+    addPackage(NewBGM());
     addPackage(NewYitian());
     addPackage(NewWisdom());
     addPackage(NewTest());

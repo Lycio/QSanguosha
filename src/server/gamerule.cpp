@@ -880,7 +880,7 @@ void BasaraMode::playerShowed(ServerPlayer *player) const{
         QString general_name = room->askForGeneral(player,names);
 
         generalShowed(player,general_name);
-        room->getThread()->trigger(GameOverJudge, player);
+        if(Config.EnableHegemony)room->getThread()->trigger(GameOverJudge, player);
         playerShowed(player);
     }
 }
@@ -909,7 +909,7 @@ void BasaraMode::generalShowed(ServerPlayer *player, QString general_name) const
     }
 
     room->setPlayerProperty(player, "kingdom", player->getGeneral()->getKingdom());
-    room->setPlayerProperty(player, "role", roles[player->getGeneral()->getKingdom()]);
+    if(Config.EnableHegemony)room->setPlayerProperty(player, "role", roles[player->getGeneral()->getKingdom()]);
 
     names.removeOne(general_name);
     room->setTag(player->objectName(),QVariant::fromValue(names));
@@ -973,13 +973,12 @@ bool BasaraMode::trigger(TriggerEvent event, ServerPlayer *player, QVariant &dat
             if(Config.EnableHegemony)
                 room->setTag("SkipNormalDeathProcess", true);
 
-            room->setPlayerProperty(player, "maxhp", player->getMaxHP() - 1);
-
             foreach(ServerPlayer* sp, room->getAlivePlayers())
             {
                 QString transfigure_str = QString("%1:%2").arg(sp->getGeneralName()).arg("anjiang");
                 sp->invoke("transfigure", transfigure_str);
                 room->setPlayerProperty(sp,"general","anjiang");
+                room->setPlayerProperty(sp,"kingdom","god");
 
                 LogMessage log;
                 log.type = "#BasaraGeneralChosen";
@@ -1042,8 +1041,8 @@ bool BasaraMode::trigger(TriggerEvent event, ServerPlayer *player, QVariant &dat
             if(player->getGeneralName() == "anjiang"){
                 QStringList generals = room->getTag(player->objectName()).toStringList();
                 room->setPlayerProperty(player, "general", generals.at(0));
-                room->setPlayerProperty(player, "general2", generals.at(1));
-                room->setPlayerProperty(player, "kingdom", Sanguosha->getGeneral(generals.at(0))->getKingdom());
+                if(Config.Enable2ndGeneral)room->setPlayerProperty(player, "general2", generals.at(1));
+                room->setPlayerProperty(player, "kingdom", player->getGeneral()->getKingdom());
                 room->setPlayerProperty(player, "role", roles[player->getKingdom()]);
             }
 

@@ -234,7 +234,7 @@ void Room::killPlayer(ServerPlayer *victim, DamageStruct *reason){
     broadcastProperty(victim, "alive");
 
     broadcastProperty(victim, "role");
-    broadcastInvoke("killPlayer", victim->objectName());
+
 
 
     int index = alive_players.indexOf(victim);
@@ -285,6 +285,8 @@ void Room::killPlayer(ServerPlayer *victim, DamageStruct *reason){
             }
         }
     }
+
+    broadcastInvoke("killPlayer", victim->objectName());
 }
 
 void Room::judge(JudgeStruct &judge_struct){
@@ -1895,6 +1897,8 @@ bool Room::hasWelfare(const ServerPlayer *player) const{
         return player->isLord() || player->getRole() == "renegade";
     else if(mode == "04_1v3")
         return false;
+    else if(Config.EnableHegemony)
+        return false;
     else
         return player->isLord() && player_count > 4;
 }
@@ -2639,7 +2643,7 @@ void Room::doGuanxing(ServerPlayer *zhuge, const QList<int> &cards, bool up_only
         QString top_str = Card::IdsToStrings(top_cards).join("+");
         QString bottom_str = Card::IdsToStrings(bottom_cards).join("+");
 
-        qDebug("Guanxing error: %s %s", qPrintable(top_str), qPrintable(bottom_str));
+        //qDebug("Guanxing error: %s %s", qPrintable(top_str), qPrintable(bottom_str));
 
         top_cards = cards;
         bottom_cards.clear();
