@@ -1044,6 +1044,11 @@ void Client::killPlayer(const QString &player_name){
     if(!Self->hasFlag("marshalling")){
         QString general_name = player->getGeneralName();
         QString last_word = Sanguosha->translate(QString("~%1").arg(general_name));
+        if(last_word.startsWith("~")){
+            QStringList origin_generals = general_name.split("_");
+            if(origin_generals.length()>1)
+                last_word = Sanguosha->translate(("~") +  origin_generals.at(1));
+        }
 
         skill_title = tr("%1[dead]").arg(Sanguosha->translate(general_name));
         skill_line = last_word;
@@ -1453,7 +1458,7 @@ void Client::speak(const QString &speak_data){
 
     if(who == "."){
         QString line = tr("<font color='red'>System: %1</font>").arg(text);
-        emit line_spoken(line);
+        emit line_spoken(QString("<p style=\"margin:3px 2px;\">%1</p>").arg(line));
         return;
     }
 
@@ -1471,7 +1476,7 @@ void Client::speak(const QString &speak_data){
     QString line = tr("<font color='%1'>[%2] said: %3 </font>")
                    .arg(Config.TextEditColor.name()).arg(title).arg(text);
 
-    emit line_spoken(line);
+    emit line_spoken(QString("<p style=\"margin:3px 2px;\">%1</p>").arg(line));
 }
 
 void Client::moveFocus(const QString &focus){
