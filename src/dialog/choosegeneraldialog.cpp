@@ -279,6 +279,7 @@ void FreeChooseDialog::chooseGeneral(){
                 break;
             }
         }
+        if(second.isEmpty()) emit general_chosen(first);
     }else{
         QAbstractButton *button = group->checkedButton();
         if(button){
