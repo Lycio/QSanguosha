@@ -3074,6 +3074,11 @@
         <translation>电脑延迟</translation>
     </message>
     <message>
+        <location filename="src/server/server.cpp" line="451"/>
+        <source>Custom Mode</source>
+        <translation>自定义模式</translation>
+    </message>
+    <message>
         <location filename="src/server/server.cpp" line="578"/>
         <location filename="src/server/server.cpp" line="593"/>
         <source>Warning</source>
