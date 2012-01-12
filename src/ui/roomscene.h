@@ -331,6 +331,7 @@ private slots:
 
 signals:
     void restart();
+    void return_to_start();
 };
 
 extern RoomScene *RoomSceneInstance;

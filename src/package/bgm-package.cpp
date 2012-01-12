@@ -31,7 +31,7 @@ public:
 
     virtual bool trigger(TriggerEvent event, ServerPlayer *player, QVariant &data) const{
         if(event == CardFinished){
-            player->tag["ChongZhenTarget"] = NULL;
+            player->tag["ChongZhenTarget"] = QVariant::fromValue(NULL);
         }
         else if(event == CardResponsed){
             CardStar card = data.value<CardStar>();
@@ -44,8 +44,6 @@ public:
                     || effect.card->inherits("SavageAssault")
                     || effect.card->inherits("Slash"))
                 player->tag["ChongZhenTarget"] = QVariant::fromValue(effect.from);
-
-            doChongZhen(player, effect.card);
         }
         else{
             SlashEffectStruct effect = data.value<SlashEffectStruct>();
@@ -57,10 +55,112 @@ public:
     }
 };
 
+LihunCard::LihunCard(){
+}
+
+bool LihunCard::targetFilter(const QList<const Player *> &targets, const Player *to_select, const Player *Self) const{
+    if(!to_select->getGeneral()->isMale())
+        return false;
+
+    if(!targets.isEmpty())
+        return false;
+
+    return true;
+}
+
+void LihunCard::onEffect(const CardEffectStruct &effect) const{
+    Room *room = effect.from->getRoom();
+    room->throwCard(this);
+    effect.from->turnOver();
+    foreach(const Card *cd, effect.to->getHandcards()){
+        room->moveCardTo(cd, effect.from, Player::Hand, false);
+    }
+    room->setTag("LihunTarget", QVariant::fromValue(effect.to));
+}
+
+class LihunSelect: public OneCardViewAsSkill{
+public:
+    LihunSelect():OneCardViewAsSkill("lihun"){
+
+    }
+
+    virtual bool viewFilter(const CardItem *to_select) const{
+        return true;
+    }
+
+    virtual bool isEnabledAtPlay(const Player *player) const{
+        return !player->hasUsed("LihunCard");
+    }
+
+    virtual const Card *viewAs(CardItem *card_item) const{
+        Card *card = new LihunCard;
+        card->addSubcard(card_item->getFilteredCard());
+        return card;
+    }
+};
+
+class Lihun: public TriggerSkill{
+public:
+    Lihun():TriggerSkill("lihun"){
+        events << PhaseChange;
+        view_as_skill = new LihunSelect;
+    }
+
+    virtual int getPriority() const{
+        return 3;
+    }
+
+    virtual bool triggerable(const ServerPlayer *target) const{
+        return target->hasUsed("LihunCard");
+    }
+
+    virtual bool trigger(TriggerEvent event, ServerPlayer *diaochan, QVariant &data) const{
+        Room *room = diaochan->getRoom();
+
+        if(event == PhaseChange && diaochan->getPhase() == Player::Discard){
+            ServerPlayer *target = room->getTag("LihunTarget").value<PlayerStar>();
+            if(!target)
+                return false;
+
+            if(diaochan->getCards("he").length() <= target->getHp()){
+                foreach(const Card *card, diaochan->getCards("he")){
+                    room->moveCardTo(card,
+                                     target,
+                                     Player::Hand,
+                                     room->getCardPlace(card->getEffectiveId()) == Player::Hand ? false : true);
+                }
+            }
+            else{
+                int i;
+                for(i = 0; i < target->getHp(); i++){
+                    if(diaochan->isNude())
+                        return false;
+
+                    int card_id = room->askForCardChosen(diaochan, diaochan, "he", objectName());
+                    const Card *card = Sanguosha->getCard(card_id);
+                    room->moveCardTo(card,
+                                     target,
+                                     Player::Hand,
+                                     room->getCardPlace(card_id) == Player::Hand ? false : true);
+                }
+            }
+            room->removeTag("LihunTarget");
+        }
+
+        return false;
+    }
+};
+
 BGMPackage::BGMPackage():Package("BGM"){
     General *bgm_zhaoyun = new General(this, "bgm_zhaoyun", "qun", 3, true, true);
     bgm_zhaoyun->addSkill("longdan");
     bgm_zhaoyun->addSkill(new ChongZhen);
+
+    General *bgm_diaochan = new General(this, "bgm_diaochan", "qun", 3, false, true);
+    bgm_diaochan->addSkill(new Lihun);
+    bgm_diaochan->addSkill("biyue");
+
+    addMetaObject<LihunCard>();
 }
 
 ADD_PACKAGE(BGM)

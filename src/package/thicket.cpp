@@ -7,6 +7,7 @@
 #include "clientplayer.h"
 #include "client.h"
 #include "engine.h"
+#include "general.h"
 
 class Xingshang: public TriggerSkill{
 public:
@@ -802,7 +803,7 @@ public:
         }
 
         if(trigger_this){
-            QString result = room->askForChoice(dongzhuo, "benghuai", "hp+max_hp");
+            QString result = room->askForChoice(dongzhuo, "benghuai", "hp+maxhp");
 
             room->playSkillEffect(objectName());
             room->setEmotion(dongzhuo, "bad");

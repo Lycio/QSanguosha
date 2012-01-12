@@ -766,8 +766,9 @@
     </message>
     <message>
         <location filename="src/dialog/configdialog.ui" line="159"/>
-        <source>Volume</source>
-        <translation>音量</translation>
+        <source>BGM    Volume</source>
+        <oldsource>Volume</oldsource>
+        <translation>背景音乐音量</translation>
     </message>
     <message>
         <location filename="src/dialog/configdialog.ui" line="120"/>
@@ -790,7 +791,12 @@
         <translation>启用背景音乐</translation>
     </message>
     <message>
-        <location filename="src/dialog/configdialog.ui" line="192"/>
+        <location filename="src/dialog/configdialog.ui" line="194"/>
+        <source>Effect Volume</source>
+        <translation>声音效果音量</translation>
+    </message>
+    <message>
+        <location filename="src/dialog/configdialog.ui" line="227"/>
         <source>Background</source>
         <translation>背景</translation>
     </message>
@@ -2349,8 +2355,18 @@
         <translation>确定</translation>
     </message>
     <message>
-        <location filename="src/dialog/roleassigndialog.cpp" line="79"/>
-        <location filename="src/dialog/roleassigndialog.cpp" line="94"/>
+        <location filename="src/dialog/roleassigndialog.cpp" line="49"/>
+        <source>Cancel</source>
+        <translation>取消</translation>
+    </message>
+    <message>
+        <location filename="src/dialog/roleassigndialog.cpp" line="51"/>
+        <source>Only assign for yourself</source>
+        <translation>仅为自己分配</translation>
+    </message>
+    <message>
+        <location filename="src/dialog/roleassigndialog.cpp" line="87"/>
+        <location filename="src/dialog/roleassigndialog.cpp" line="105"/>
         <source>Warning</source>
         <translation>警告</translation>
     </message>
@@ -2588,12 +2604,37 @@
         <translation>在弹出的窗口中查看 ...</translation>
     </message>
     <message>
-        <location filename="src/ui/roomscene.cpp" line="1485"/>
+        <location filename="src/ui/roomscene.cpp" line="1473"/>
+        <source>Wei</source>
+        <translation>魏国</translation>
+    </message>
+    <message>
+        <location filename="src/ui/roomscene.cpp" line="1474"/>
+        <source>Shu</source>
+        <translation>蜀国</translation>
+    </message>
+    <message>
+        <location filename="src/ui/roomscene.cpp" line="1475"/>
+        <source>Wu</source>
+        <translation>吴国</translation>
+    </message>
+    <message>
+        <location filename="src/ui/roomscene.cpp" line="1476"/>
+        <source>Qun</source>
+        <translation>群雄</translation>
+    </message>
+    <message>
+        <location filename="src/ui/roomscene.cpp" line="1649"/>
         <source>The OK button should be disabled when client is in executing dialog</source>
         <translation>确定按钮在客户端在执行对话框状态下是不能被禁用的</translation>
     </message>
     <message>
-        <location filename="src/ui/roomscene.cpp" line="2206"/>
+        <location filename="src/ui/roomscene.cpp" line="2062"/>
+        <source>Please choose a player&lt;br/&gt; &lt;b&gt;Source&lt;/b&gt;: %1&lt;br/&gt;</source>
+        <translation>请选择一名角色&lt;br/&gt; &lt;b&gt;技能来源&lt;/b&gt;: %1&lt;br/&gt;</translation>
+    </message>
+    <message>
+        <location filename="src/ui/roomscene.cpp" line="2402"/>
         <source>Standoff</source>
         <translation>平局</translation>
     </message>
@@ -2618,7 +2659,12 @@
         <translation>失败者</translation>
     </message>
     <message>
-        <location filename="src/ui/roomscene.cpp" line="2301"/>
+        <location filename="src/ui/roomscene.cpp" line="2492"/>
+        <source>Return to main menu</source>
+        <translation>返回主菜单</translation>
+    </message>
+    <message>
+        <location filename="src/ui/roomscene.cpp" line="2498"/>
         <source>Save record</source>
         <translation>保存记录</translation>
     </message>
@@ -2983,11 +3029,6 @@
         <translation>体力上限分配方案</translation>
     </message>
     <message>
-        <location filename="src/server/server.cpp" line="185"/>
-        <source>Ban pairs table ...</source>
-        <translation>禁配表 ...</translation>
-    </message>
-    <message>
         <location filename="src/server/server.cpp" line="191"/>
         <source>Annouce my IP in WAN</source>
         <translation>在广域网上公布我的 IP</translation>
@@ -3143,7 +3184,17 @@
         <translation>场景模式</translation>
     </message>
     <message>
-        <location filename="src/client/clientstruct.cpp" line="90"/>
+        <location filename="src/client/clientstruct.cpp" line="92"/>
+        <source>Basara Mode</source>
+        <translation>暗将模式</translation>
+    </message>
+    <message>
+        <location filename="src/client/clientstruct.cpp" line="93"/>
+        <source>Hegemony Mode</source>
+        <translation>国战模式</translation>
+    </message>
+    <message>
+        <location filename="src/client/clientstruct.cpp" line="94"/>
         <source>Max HP scheme</source>
         <translation>体力上限分配方案</translation>
     </message>

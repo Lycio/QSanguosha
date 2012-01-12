@@ -59,6 +59,7 @@ private:
     QGraphicsScene *record_scene;
     QGroupBox *general_box;
     QGroupBox *result_box;
+    QTextEdit *server_log;
     Server *server;
 };
 
@@ -110,6 +111,7 @@ private slots:
     void networkError(const QString &error_msg);
     void enterRoom();
     void gotoScene(QGraphicsScene *scene);
+    void gotoStartScene();
     void startGameInAnotherInstance();
     void changeBackground();
     void on_actionView_ban_list_triggered();

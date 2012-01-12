@@ -2300,8 +2300,10 @@ void RoomScene::addRestartButton(QDialog *dialog){
     dialog->resize(main_window->width()/2, dialog->height());
 
     QPushButton *restart_button = new QPushButton(tr("Restart Game"));
+    QPushButton *return_button = new QPushButton(tr("Return to main menu"));
     QHBoxLayout *hlayout = new QHBoxLayout;
     hlayout->addStretch();
+    hlayout->addWidget(return_button);
     hlayout->addWidget(restart_button);
 
     QPushButton *save_button = new QPushButton(tr("Save record"));
@@ -2312,8 +2314,10 @@ void RoomScene::addRestartButton(QDialog *dialog){
         layout->addLayout(hlayout);
 
     connect(restart_button, SIGNAL(clicked()), dialog, SLOT(accept()));
+    connect(return_button, SIGNAL(clicked()), dialog, SLOT(accept()));
     connect(save_button, SIGNAL(clicked()), this, SLOT(saveReplayRecord()));
     connect(dialog, SIGNAL(accepted()), this, SIGNAL(restart()));
+    connect(return_button, SIGNAL(clicked()), this, SIGNAL(return_to_start()));
 }
 
 void RoomScene::saveReplayRecord(){
@@ -2936,20 +2940,26 @@ void RoomScene::onGameStart(){
 
     // start playing background music
     QString bgmusic_path = Config.value("BackgroundMusic", "audio/system/background.mp3").toString();
-#ifdef  Q_OS_WIN32
-    const char *filename = bgmusic_path.toLocal8Bit().data();
-    BackgroundMusic = SoundEngine->play2D(filename, true, false, true);
 
-    if(BackgroundMusic)
-        BackgroundMusic->setVolume(Config.Volume);
+#ifdef  Q_OS_WIN32
+    if(SoundEngine) {
+        const char *filename = bgmusic_path.toLocal8Bit().data();
+        BackgroundMusic = SoundEngine->play2D(filename, true, false, true);
+
+        if(BackgroundMusic)
+            BackgroundMusic->setVolume(Config.BGMVolume);
+    }
 #else
-    if (!BackgroundMusic) {
+    if(BackgroundMusic == NULL) {
         SoundOutput = new Phonon::AudioOutput(Phonon::GameCategory, this);
         BackgroundMusic = new Phonon::MediaObject(this);
-        Phonon::createPath(BackgroundMusic, SoundOutput);
-        BackgroundMusic->setCurrentSource(Phonon::MediaSource(bgmusic_path));
-        BackgroundMusic->play();
         connect(BackgroundMusic, SIGNAL(aboutToFinish()), SLOT(onMusicFinish()));
+        Phonon::createPath(BackgroundMusic, SoundOutput);
+    }
+    if(BackgroundMusic) {
+        // This crashes when running twice
+        // BackgroundMusic->setCurrentSource(bgmusic_path);
+        // BackgroundMusic->play();
     }
 #endif
 

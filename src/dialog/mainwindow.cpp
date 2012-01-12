@@ -273,8 +273,40 @@ void MainWindow::enterRoom(){
     }
 
     connect(room_scene, SIGNAL(restart()), this, SLOT(startConnection()));
+    connect(room_scene, SIGNAL(return_to_start()), this, SLOT(gotoStartScene()));
 
     gotoScene(room_scene);
+}
+
+void MainWindow::gotoStartScene(){
+    StartScene *start_scene = new StartScene;
+
+    QList<QAction*> actions;
+    actions << ui->actionStart_Game
+            << ui->actionStart_Server
+            << ui->actionPC_Console_Start
+            << ui->actionReplay
+            << ui->actionConfigure
+            << ui->actionGeneral_Overview
+            << ui->actionCard_Overview
+            << ui->actionScenario_Overview
+            << ui->actionAbout
+            << ui->actionAcknowledgement;
+
+    foreach(QAction *action, actions)
+        start_scene->addButton(action);
+
+    setCentralWidget(view);
+    restoreFromConfig();
+
+    gotoScene(start_scene);
+
+    addAction(ui->actionShow_Hide_Menu);
+    addAction(ui->actionFullscreen);
+    addAction(ui->actionMinimize_to_system_tray);
+
+    systray = NULL;
+    delete ClientInstance;
 }
 
 void MainWindow::startGameInAnotherInstance(){
@@ -359,10 +391,14 @@ void MainWindow::changeBackground(){
         QBrush brush(pixmap);
 
         if(pixmap.width() > 100 && pixmap.height() > 100){
-            qreal dx = -width()/2.0;
-            qreal dy = -height()/2.0;
-            qreal sx = width() / qreal(pixmap.width());
-            qreal sy = height() / qreal(pixmap.height());
+            qreal _width = width()/view->matrix().m11();
+            qreal _height= height()/view->matrix().m22();
+
+            qreal dx = -_width/2.0;
+            qreal dy = -_height/2.0;
+            qreal sx = _width / qreal(pixmap.width());
+            qreal sy = _height / qreal(pixmap.height());
+
 
             QTransform transform;
             transform.translate(dx, dy);
@@ -612,6 +648,7 @@ MeleeDialog::MeleeDialog(QWidget *parent)
 //    QGroupBox *result_box = createResultBox();
     general_box = createGeneralBox();
     result_box = createResultBox();
+    server_log = new QTextEdit;
     QGraphicsView *record_view = new QGraphicsView;
     record_view->setMinimumWidth(500);
 
@@ -620,6 +657,11 @@ MeleeDialog::MeleeDialog(QWidget *parent)
 
     general_box->setMaximumWidth(250);
     result_box->setMaximumWidth(250);
+    server_log->setMinimumWidth(400);
+    server_log->setReadOnly(true);
+    server_log->setFrameStyle(QFrame::Box);
+    server_log->setProperty("description", true);
+    server_log->setFont(QFont("Verdana", 12));
 
     QVBoxLayout *vlayout = new QVBoxLayout;
     vlayout->addWidget(general_box);
@@ -628,6 +670,7 @@ MeleeDialog::MeleeDialog(QWidget *parent)
     QHBoxLayout *layout = new QHBoxLayout;
     layout->addLayout(vlayout);
     layout->addWidget(record_view);
+    layout->addWidget(server_log);
     setLayout(layout);
 
     setGeneral(Config.value("MeleeGeneral", "zhangliao").toString());
@@ -677,6 +720,7 @@ void MeleeDialog::startTest(){
     Room *room = server->createNewRoom();
     connect(room, SIGNAL(game_start()), this, SLOT(onGameStart()));
     connect(room, SIGNAL(game_over(QString)), this, SLOT(onGameOver(QString)));
+    connect(server, SIGNAL(server_message(QString)), server_log,SLOT(append(QString)));
 
     room->startTest(avatar_button->property("to_test").toString());
 }

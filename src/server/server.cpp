@@ -295,9 +295,6 @@ BanlistDialog::BanlistDialog(QWidget *parent, bool view)
         QWidget *apage = new QWidget;
 
         list = new QListWidget;
-        list->setIconSize(General::TinyIconSize);
-        list->setViewMode(QListView::IconMode);
-        list->setDragDropMode(QListView::NoDragDrop);
         list->setObjectName(item);
 
         QStringList banlist = Config.value(QString("Banlist/%1").arg(item)).toStringList();
@@ -338,27 +335,37 @@ BanlistDialog::BanlistDialog(QWidget *parent, bool view)
 
     QPushButton *add = new QPushButton(tr("Add ..."));
     QPushButton *remove = new QPushButton(tr("Remove"));
-    add2nd = new QPushButton(tr("Add 2nd general ..."));
+    if(!view)add2nd = new QPushButton(tr("Add 2nd general ..."));
     QPushButton *ok = new QPushButton(tr("OK"));
 
     connect(ok, SIGNAL(clicked()), this, SLOT(accept()));
     connect(this, SIGNAL(accepted()), this, SLOT(saveAll()));
     connect(remove, SIGNAL(clicked()), this, SLOT(doRemoveButton()));
     connect(add, SIGNAL(clicked()), this, SLOT(doAddButton()));
-    connect(add2nd, SIGNAL(clicked()), this, SLOT(doAdd2ndButton()));
+    if(!view)connect(add2nd, SIGNAL(clicked()), this, SLOT(doAdd2ndButton()));
 
     QHBoxLayout *hlayout = new QHBoxLayout;
     hlayout->addStretch();
     if(!view){
         hlayout->addWidget(add2nd);
+        add2nd->hide();
         hlayout->addWidget(add);
         hlayout->addWidget(remove);
+        list = lists.first();
     }
-    add2nd->hide();
+
     hlayout->addWidget(ok);
     layout->addLayout(hlayout);
 
     setLayout(layout);
+
+    foreach(QListWidget * alist , lists)
+    {
+        if(alist->objectName() == "Pairs")continue;
+        alist->setIconSize(General::TinyIconSize);
+        alist->setViewMode(QListView::IconMode);
+        alist->setDragDropMode(QListView::NoDragDrop);
+    }
 }
 
 void BanlistDialog::addGeneral(const QString &name){
@@ -373,6 +380,7 @@ void BanlistDialog::addGeneral(const QString &name){
         QIcon icon(general->getPixmapPath("tiny"));
         QString text = Sanguosha->translate(name);
         QListWidgetItem *item = new QListWidgetItem(icon, text, list);
+        item->setSizeHint(QSize(60,60));
         item->setData(Qt::UserRole, name);
     }
 }

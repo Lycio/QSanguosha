@@ -607,8 +607,19 @@ QString GameRule::getWinner(ServerPlayer *victim) const{
 
         if(!has_anjiang && !has_diff_kingdoms){
             QStringList winners;
-            foreach(ServerPlayer *p, room->getAlivePlayers()){
-                winners << p->objectName();
+            QString aliveKingdom = room->getAlivePlayers().first()->getKingdom();
+            foreach(ServerPlayer *p, room->getPlayers()){
+                if(p->isAlive())winners << p->objectName();
+                if(p->getKingdom() == aliveKingdom)
+                {
+                    QStringList generals = room->getTag(p->objectName()).toStringList();
+                    if(generals.size()&&!Config.Enable2ndGeneral)continue;
+                    if(generals.size()>1)continue;
+
+                    //if someone showed his kingdom before death,
+                    //he should be considered victorious as well if his kingdom survives
+                    winners << p->objectName();
+                }
             }
 
             winner = winners.join("+");
@@ -850,11 +861,17 @@ BasaraMode::BasaraMode(QObject *parent)
     skill_mark["niepan"] = "@nirvana";
     skill_mark["smallyeyan"] = "@flame";
     skill_mark["luanwu"] = "@chaos";
+}
 
-    roles["wei"] = "lord";
-    roles["shu"] = "loyalist";
-    roles["wu"] = "rebel";
-    roles["qun"] = "renegade";
+QString BasaraMode::getMappedRole(const QString &role){
+    static QMap<QString, QString> roles;
+    if(roles.isEmpty()){
+        roles["wei"] = "lord";
+        roles["shu"] = "loyalist";
+        roles["wu"] = "rebel";
+        roles["qun"] = "renegade";
+    }
+    return roles[role];
 }
 
 int BasaraMode::getPriority() const
@@ -871,10 +888,10 @@ void BasaraMode::playerShowed(ServerPlayer *player) const{
     if(Config.EnableHegemony){
         QMap<QString, int> kingdom_roles;
         foreach(ServerPlayer *p, room->getOtherPlayers(player)){
-            kingdom_roles[p->getGeneral()->getKingdom()]++;
+            kingdom_roles[p->getKingdom()]++;
         }
 
-        if(kingdom_roles[Sanguosha->getGeneral(names.first())->getKingdom()] >= 1
+        if(kingdom_roles[Sanguosha->getGeneral(names.first())->getKingdom()] >= 2
                 && player->getGeneralName() == "anjiang")
             return;
     }
@@ -914,7 +931,7 @@ void BasaraMode::generalShowed(ServerPlayer *player, QString general_name) const
     }
 
     room->setPlayerProperty(player, "kingdom", player->getGeneral()->getKingdom());
-    if(Config.EnableHegemony)room->setPlayerProperty(player, "role", roles[player->getGeneral()->getKingdom()]);
+    if(Config.EnableHegemony)room->setPlayerProperty(player, "role", getMappedRole(player->getGeneral()->getKingdom()));
 
     names.removeOne(general_name);
     room->setTag(player->objectName(),QVariant::fromValue(names));
@@ -1011,7 +1028,7 @@ bool BasaraMode::trigger(TriggerEvent event, ServerPlayer *player, QVariant &dat
                 room->setPlayerProperty(player, "general", generals.at(0));
                 if(Config.Enable2ndGeneral)room->setPlayerProperty(player, "general2", generals.at(1));
                 room->setPlayerProperty(player, "kingdom", player->getGeneral()->getKingdom());
-                room->setPlayerProperty(player, "role", roles[player->getKingdom()]);
+                room->setPlayerProperty(player, "role", getMappedRole(player->getKingdom()));
             }
 
             DamageStar damage = data.value<DamageStar>();

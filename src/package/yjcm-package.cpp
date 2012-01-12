@@ -6,6 +6,7 @@
 #include "carditem.h"
 #include "engine.h"
 #include "ai.h"
+#include "general.h"
 
 class Yizhong: public TriggerSkill{
 public:
@@ -400,8 +401,8 @@ public:
             log.to << killer;
             room->sendLog(log);
 
-            killer->throwAllEquips();
             killer->throwAllHandCards();
+            killer->throwAllEquips();
 
             QString killer_name = killer->getGeneralName();
             if(killer_name == "zhugeliang" || killer_name == "wolong" || killer_name == "shenzhugeliang")

@@ -174,10 +174,10 @@ Engine::~Engine(){
     if(SoundEngine) {
 #ifdef  Q_OS_WIN32
         SoundEngine->drop();
-        SoundEngine = NULL;
 #else
         delete SoundEngine;
 #endif
+        SoundEngine = NULL;
     }
 #endif
 
@@ -324,8 +324,16 @@ int Engine::getGeneralCount(bool include_banned) const{
         if(ban_package.contains(general->getPackage()))
             total--;
 
-        if(Config.Enable2ndGeneral && BanPair::isBanned(general->objectName()))
+        else if(ServerInfo.Enable2ndGeneral && BanPair::isBanned(general->objectName()))
             total--;
+
+        else if(ServerInfo.EnableBasara &&
+                Config.value("Banlist/Basara").toStringList().contains(general->objectName()))
+            total -- ;
+
+        else if(ServerInfo.EnableHegemony &&
+                Config.value("Banlist/Hegemony").toStringList().contains(general->objectName()))
+            total -- ;
     }
 
     return total;
@@ -642,22 +650,16 @@ QStringList Engine::getLimitedGeneralNames() const{
 
 QStringList Engine::getRandomGenerals(int count, const QSet<QString> &ban_set) const{
     QStringList all_generals = getLimitedGeneralNames();
+    QSet<QString> general_set = all_generals.toSet();
 
     Q_ASSERT(all_generals.count() >= count);
 
-    if(Config.EnableBasara){
-        QSet<QString> basara_ban;
-        foreach(QString general, all_generals)
-            if(Sanguosha->getGeneral(general)->getKingdom() == "god" && !ban_set.contains(general))
-                basara_ban.insert(general);
+    if(Config.EnableBasara) general_set =
+            general_set.subtract(Config.value("Banlist/Basara", "").toStringList().toSet());
+    if(Config.EnableHegemony) general_set =
+            general_set.subtract(Config.value("Banlist/Hegemony", "").toStringList().toSet());
 
-        all_generals = all_generals.toSet().subtract(basara_ban).toList();
-    }
-
-    if(!ban_set.isEmpty()){
-        QSet<QString> general_set = all_generals.toSet();
-        all_generals = general_set.subtract(ban_set).toList();
-    }
+    all_generals = general_set.subtract(ban_set).toList();
 
     // shuffle them
     qShuffle(all_generals);
@@ -708,10 +710,10 @@ void Engine::playEffect(const QString &filename) const{
     if(filename.isNull())
         return;
 
-#ifdef  Q_OS_WIN32
     if(SoundEngine == NULL)
         return;
 
+#ifdef  Q_OS_WIN32
     if(SoundEngine->isCurrentlyPlaying(filename.toAscii()))
         return;
     SoundEngine->play2D(filename.toAscii());
